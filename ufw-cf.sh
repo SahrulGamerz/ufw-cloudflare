@@ -9,7 +9,7 @@ cfufw_showhelp=0
 
 cf_ufw_add () {
     if [ ! -z $1 ]; then
-        rule=$(LC_ALL=C && ufw allow from $1 to any port 80,443 proto tcp comment "cloudflare")
+        rule=$(LC_ALL=C && ufw route allow from $1 to any port 80,443 proto tcp comment "cloudflare")
 
         if [ "$rule" = 'Rule added' ] || [ "$rule" = 'Rule added (v6)' ]; then
             echo -n "\e[32m+\e[39m"
@@ -24,7 +24,7 @@ cf_ufw_add () {
 
 cf_ufw_del () {
     if [ ! -z $1 ]; then
-        rule=$(LC_ALL=C && ufw delete allow from $1 to any port 80,443 proto tcp)
+        rule=$(LC_ALL=C && ufw route delete allow from $1 to any port 80,443 proto tcp)
 
         if [ "$rule" = 'Rule deleted' ] || [ "$rule" = 'Rule deleted (v6)' ]; then
             echo -n "\e[31m-\e[39m"
@@ -38,7 +38,7 @@ cf_ufw_del () {
 }
 
 cf_ufw_purge () {
-    total="$(ufw status numbered | awk '/# cloudflare$/ {++count} END {print count}')"
+    total="$(ufw status | awk '/# cloudflare$/ {++count} END {print count}')"
     i=1
 
     if [ -z $total ]; then
@@ -47,7 +47,7 @@ cf_ufw_purge () {
     fi
 
     while [ $i -le $total ]; do
-        cfip=$(ufw status numbered | awk '/# cloudflare$/{print $6; exit}')
+        cfip=$(ufw status | awk '/# cloudflare$/{print $4; exit}')
         cf_ufw_del $cfip
         i=$((i+1))
     done
